@@ -1,0 +1,51 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            このPRの差分（git diff）をレビューしてください。
+
+            判定基準：
+            - FAIL：正しさに関わるバグ（correctness bug）、セキュリティ上の重大な問題など、
+              実害につながる指摘がある場合
+            - PASS：軽微な指摘（スタイル・命名・将来的な改善提案等）のみ、または指摘なしの場合
+
+            レビュー内容はPRへのコメントとして投稿してください。
+
+            加えて、リポジトリのルートに `review_result.txt` というファイルを作成し、
+            中身は以下のどちらか1行だけにしてください（他の文字は含めない）。
+              REVIEW_RESULT: PASS
+            または
+              REVIEW_RESULT: FAIL
+
+      - name: Check review result
+        run: |
+          if [ ! -f review_result.txt ]; then
+            echo "review_result.txt が見つかりません。レビューが正常に完了しなかった可能性があります。"
+            exit 1
+          fi
+          cat review_result.txt
+          if grep -q "REVIEW_RESULT: FAIL" review_result.txt; then
+            echo "レビューでFAIL判定が出たため、このジョブを失敗させます。"
+            exit 1
+          fi
+          echo "レビューはPASSでした。"
