@@ -10,15 +10,15 @@
 
 ## タスク
 
-- [ ] 1. `.github/workflows/claude-review.yml`を作成する
-    - [ ] トリガー：`pull_request`の`opened`・`synchronize`
-    - [ ] `actions/checkout@v4`でリポジトリをチェックアウト
-    - [ ] `anthropics/claude-code-action@v1`を実行するステップ（`design.md`のFAIL/PASS基準をプロンプトに含める）
-    - [ ] `REVIEW_RESULT`を読み取り、`FAIL`なら`exit 1`する後続ステップ
-- [ ] 2. Anthropic ConsoleでAPIキーを発行する（ユーザーが実施。Claudeには値を見せない）
-- [ ] 3. GitHub Secretsに`ANTHROPIC_API_KEY`として登録する（ユーザーが実施）
-- [ ] 4. featureブランチ（`feature/20260929-github-actions-ci`）にpushし、PRを作成する
-- [ ] 5. PR上でワークフローが起動し、レビューコメント・`REVIEW_RESULT`が確認できることを確かめる
+- [x] 1. `.github/workflows/claude-review.yml`を作成する
+    - [x] トリガー：`pull_request`の`opened`・`synchronize`
+    - [x] `actions/checkout@v4`でリポジトリをチェックアウト
+    - [x] `anthropics/claude-code-action@v1`を実行するステップ（`design.md`のFAIL/PASS基準をプロンプトに含める）
+    - [x] `REVIEW_RESULT`を読み取り、`FAIL`なら`exit 1`する後続ステップ
+- [x] 2. Anthropic ConsoleでWorkload Identity Federationを設定する（ユーザーが実施：Service Account・Federation Ruleの作成、対象リポジトリ・`pull_request`イベントへの限定）
+- [x] 3. 発行された4つのID（federation_rule_id／organization_id／service_account_id／workspace_id）をワークフローファイルに反映する（秘密情報ではないため直接記載）
+- [x] 4. featureブランチ（`feature/20260929-github-actions-ci`）にpushし、PRを作成する
+- [ ] 5. PR上でワークフローが起動し、レビューコメント・`REVIEW_RESULT`が確認できることを確かめる（初回は`id-token: write`権限不足で失敗、権限追加とAPIキー方式からWIF方式への切り替えで修正済み。再実行での確認待ち）
 - [ ] 6. `main`のブランチ保護ルールを設定する（当該ジョブを必須ステータスチェックに指定）
 - [ ] 7. 動作確認
     - [ ] レビューがPASSの場合、マージ操作ができることを確認する

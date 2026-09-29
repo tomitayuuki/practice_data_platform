@@ -37,9 +37,10 @@ flowchart LR
     5. `PASS`であれば、そのステップは何もせず正常終了する。ジョブ全体が成功として記録され、PR画面のチェックが緑になり、ブランチ保護の条件を満たす状態になる。ただし、この時点で自動的にマージされるわけではなく、「Merge」ボタンを押す操作自体は引き続き人が行う
 
 ### 認証情報
-- Anthropicの直接APIキーを使用する
-- GitHub Secretsに`ANTHROPIC_API_KEY`として登録する（リポジトリの Settings → Secrets and variables → Actions）
-- リポジトリ内のファイルには一切記載しない（`CLAUDE.md`のデータ取扱いの原則に準拠）
+- Anthropicの直接APIキーではなく、**Workload Identity Federation（WIF）**を使用する。GitHub ActionsのOIDCトークンを、その場限りの短期間だけ有効なAnthropicアクセストークンに交換する仕組みで、長期間有効な秘密情報（APIキー）をリポジトリ・GitHub Secretsのどちらにも保存しない
+- Anthropic ConsoleでService Account・Federation Ruleを作成し、対象リポジトリ・`pull_request`イベントに限定する
+- ワークフロー側には`anthropic_federation_rule_id`／`anthropic_organization_id`／`anthropic_service_account_id`／`anthropic_workspace_id`の4つのIDを指定する。これらは識別子であり秘密情報ではないため、ワークフローファイルに直接記載してよい
+- ワークフローに`id-token: write`権限を付与する（GitHubのOIDCトークン取得に必須）
 
 ### ブランチ保護ルール
 `main`ブランチに対して、GitHubリポジトリのSettings → Branchesから設定する。
@@ -48,7 +49,7 @@ flowchart LR
 - 上記ワークフローのジョブを必須ステータスチェックとして指定する
 
 ## 前提条件
-- Anthropicの開発者アカウント（Anthropic Console）でAPIキーを発行できること。本作業単位専用の新しいAPIキーを発行し、GitHub Secretsにのみ登録する
+- Anthropic ConsoleでWorkload Identity Federationの設定（Service Account・Federation Ruleの作成）ができること
 
 ## 未確定事項
 - `claude-code-action@v1`が、実行結果を後続ステップから直接参照できる形（例：`steps.<id>.outputs.*`）で提供しているかは、実装時に公式ドキュメント・実際の挙動で確認する。提供されていない場合は、出力ログをファイルに書き出して`grep`する等の代替手段を取る
