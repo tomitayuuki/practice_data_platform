@@ -23,7 +23,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          show_full_output: true
+          claude_args: |
+            --allowedTools Write,Bash
           prompt: |
             このPRの差分（git diff）をレビューしてください。
 
