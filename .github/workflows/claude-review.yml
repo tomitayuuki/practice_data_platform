@@ -22,11 +22,7 @@ jobs:
       - name: Run Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_federation_rule_id: fdrl_01XeZVx4thbTkRbcoA6LXsPh
-          anthropic_organization_id: c6bf7aa1-6ced-4c3d-a830-6a6177be009a
-          anthropic_service_account_id: svac_01Njwe6rge6DodNmYSYCSfz8
-          anthropic_workspace_id: wrkspc_018r68Swz8YGsDzmbfbhrsbU
-          show_full_output: true
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
             このPRの差分（git diff）をレビューしてください。
 
