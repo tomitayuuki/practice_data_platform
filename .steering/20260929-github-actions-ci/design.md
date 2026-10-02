@@ -44,6 +44,8 @@ flowchart LR
     - WIF自体（`claude-code-action`のWIF対応、GitHubの「immutable subject claims」仕様）がいずれも比較的新しい機能で、ドキュメントが薄く、実装中に複数の未文書化の挙動（OIDCトークンのsubject claim形式の変更によるルール不一致等）に遭遇し、原因調査に長時間を要した
     - 個人開発・学習目的のプロジェクトでは、APIキー＋Secretsという実績のある枯れた方式の方が、トラブルシューティングのコストを抑えられると判断した
     - 教訓として、「新しくリリースされた機能は、Claude Codeと一緒に使う場合は実績のある方式より数倍のデバッグコストがかかりうる」という点を学んだ
+- APIキーは、**ワークスペースに紐づいたキー**を発行する（Anthropic Consoleのキー作成時に「組織」ではなく「デフォルトワークスペース」を選択する）。組織スコープのキーだと`anthropic-workspace-id`ヘッダーが別途必要になり、このアクションでは認証エラーになる
+- `claude_args`で`--allowedTools Write,Bash`を指定する。指定しないと、Claudeが`review_result.txt`の書き込みや`gh pr comment`の実行時に「人間の承認待ち」状態になり、CI環境には承認する人間がいないため常に失敗する（インタラクティブなClaude Codeの通常の安全装置が、非対話のCI環境でもそのまま有効になっているため）
 
 ### ブランチ保護ルール
 `main`ブランチに対して、GitHubリポジトリの**Rulesets**（Settings → Rules → Rulesets。クラシックな「Settings → Branches」のブランチ保護ルールではない）から設定する。
