@@ -100,6 +100,7 @@
 - PRに追加でpushするたびに、CIは自動で再実行される。
 - レビューで指摘があった場合は、同じfeatureブランチに修正をpushする（新しいPRは作らない）。
 - CIのチェックが通るまで、`main`へはマージできない（4.1のブランチ保護ルールによる）。
+- **既知の例外**：CIワークフロー自体（`.github/workflows/claude-review.yml`）を変更するPRは、セキュリティ対策（PR上のワークフロー内容が`main`と不一致の場合の自己スキップ）により自動レビューが機能しない。該当するPRは、ブランチ保護のBypass機能を使い、人が手動確認の上でマージする（詳細は`.steering/20260929-github-actions-ci/design.md`）。
 
 ### 4.4 mainへの取り込み
 - featureブランチは、GitHub上のPR画面から「Squash and merge」でmainに取り込む。作業単位ごとに1コミットとなる。
