@@ -43,7 +43,11 @@ if ($LASTEXITCODE -ne 0) { throw "Upload to S3 failed." }
 
 Write-Host "Step 2/3: Loading into Snowflake (COPY INTO + MERGE)..."
 snow sql -f "$LoadSqlFile"
-if ($LASTEXITCODE -ne 0) { throw "Snowflake load failed. File left in inbox (not moved to archive)." }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Snowflake load failed. Removing the uploaded file from inbox to avoid leaving a stale duplicate for the next run..."
+    & $AwsExe s3 rm "s3://$Bucket/$InboxKey"
+    throw "Snowflake load failed. The uploaded file was removed from inbox; re-run this script with the original CSV once the issue is fixed."
+}
 
 Write-Host "Step 3/3: Load succeeded. Moving file from inbox to archive..."
 & $AwsExe s3 mv "s3://$Bucket/$InboxKey" "s3://$Bucket/$ArchiveKey"

@@ -102,8 +102,14 @@ FROM (
 FILE_FORMAT = (FORMAT_NAME = 'RAW_PROD.MONEYFORWARD.MONEYFORWARD_CSV_FORMAT');
 
 -- 2. idキーでMERGE（重複排除）
+-- STG側に同一idが複数行存在する場合（inboxに未処理ファイルが複数残っていた場合等）に
+-- 二重にINSERTされることを防ぐため、QUALIFYでidを一意にしてからMERGEする。
 MERGE INTO RAW_PROD.MONEYFORWARD.TRANSACTIONS AS target
-USING RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG AS source
+USING (
+    SELECT *
+    FROM RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY transaction_date DESC) = 1
+) AS source
 ON target.id = source.id
 WHEN NOT MATCHED THEN INSERT (is_target, transaction_date, description, amount,
     institution_name, category_major, category_minor, memo, is_transfer, id)
@@ -114,6 +120,8 @@ WHEN NOT MATCHED THEN INSERT (is_target, transaction_date, description, amount,
 DEV側も同じSQLを`RAW_DEV`・`RAW_DEV.MONEYFORWARD.S3_STAGE`に置き換えて実行する。
 
 既存の`id`に該当する行が再取り込みされた場合は`WHEN NOT MATCHED`のみのため単純にスキップされる（内容が変わっていても更新しない。マネーフォワード側で同じ取引の内容が後から変わるケースは想定しにくいため、まずはこのシンプルな方式とする）。
+
+**実装後のCIレビューで判明した不具合と対応**：`MERGE ... WHEN NOT MATCHED THEN INSERT`は、ソース（STG）側に同一`id`が複数行あっても、ソース側同士の重複は排除しない（ターゲットに既にある行との重複しか防げない）。`COPY INTO`は`inbox`配下の全ファイルを読み込み、かつ`STG`は`CREATE OR REPLACE`で毎回作り直すため、何らかの理由で`inbox`に未処理ファイルが複数残っていると、同一`id`が二重にINSERTされうる状態だった。上記の`QUALIFY ROW_NUMBER() OVER (PARTITION BY id ...) = 1`でソース側を事前に一意化することで対応した。あわせて、`upload_and_load_moneyforward.ps1`側でも、取り込み失敗時にアップロード済みファイルを`inbox`から削除し、未処理ファイルが残留しないようにした（根本原因への対策）。
 
 ## ローカルのアップロード・取り込み処理
 今回は手動運用のため、以下を1つのスクリプト（`ingestion/`配下）にまとめ、1回の実行で完結させる。

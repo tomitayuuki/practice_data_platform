@@ -25,8 +25,14 @@ FROM (
 )
 FILE_FORMAT = (FORMAT_NAME = 'RAW_PROD.MONEYFORWARD.MONEYFORWARD_CSV_FORMAT');
 
+-- STG側に同一idが複数行存在する場合（inboxに未処理ファイルが複数残っていた場合等）に
+-- 二重にINSERTされることを防ぐため、idで一意にしてからMERGEする。
 MERGE INTO RAW_PROD.MONEYFORWARD.TRANSACTIONS AS target
-USING RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG AS source
+USING (
+    SELECT *
+    FROM RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY transaction_date DESC) = 1
+) AS source
 ON target.id = source.id
 WHEN NOT MATCHED THEN INSERT (is_target, transaction_date, description, amount,
     institution_name, category_major, category_minor, memo, is_transfer, id)

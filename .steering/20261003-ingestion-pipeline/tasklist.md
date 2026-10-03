@@ -31,6 +31,11 @@
     - [x] `docs/interfaces.md`の「稼働状況」を更新する（検討中→稼働中。`docs/connections.md`は稼働状況の列を持たない設計のため対象外）
 - [ ] 10. コミット・feature pushし、PRを作成してCIレビューを通し、mainへマージする
 
+## CIレビューで判明した不具合と対応
+- **FAIL判定**：`MERGE`のソース（STG）側に同一`id`が複数行あると、ターゲット側の重複しか防げず二重INSERTされる不具合を指摘された。`QUALIFY ROW_NUMBER() OVER (PARTITION BY id ...) = 1`でソース側を一意化し修正。実際に同一`id`を含む2ファイルを`inbox`に置いた状態で再現・修正を確認済み（STGは2行、`MERGE`後の本体テーブルは1行のまま）
+- あわせて、取り込み失敗時に`upload_and_load_moneyforward.ps1`がアップロード済みファイルを`inbox`から削除するよう修正（未処理ファイルが残留する根本原因への対策）
+- 軽微な指摘：`LOADER_*`ロールへの`FILE FORMAT`への`USAGE`権限が明示的に付与されていなかった点は、`setup_moneyforward_stage.sql`に`GRANT USAGE ON FILE FORMAT`を追加して対応（動作上は問題なかったが、明示的な権限付与に統一するため）
+
 ## 実装中に判明した事項（design.mdにも反映済み）
 - `ENCODING = 'SJIS'`は無効。正しくは`'SHIFTJIS'`
 - 日付`1900/01/01`（`YYYY/MM/DD`形式）はデフォルトで認識されず、`DATE_FORMAT`の明示指定が必要だった
