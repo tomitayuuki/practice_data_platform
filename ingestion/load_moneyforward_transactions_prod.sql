@@ -1,0 +1,37 @@
+-- マネーフォワード取引明細：RAW_PRODへの取り込み（COPY INTO → MERGE）
+-- .steering/20261003-ingestion-pipeline/design.md に対応
+
+USE ROLE LOADER_PROD;
+
+CREATE OR REPLACE TABLE RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG (
+    is_target BOOLEAN,
+    transaction_date DATE,
+    description STRING,
+    amount NUMBER,
+    institution_name STRING,
+    category_major STRING,
+    category_minor STRING,
+    memo STRING,
+    is_transfer BOOLEAN,
+    id STRING
+);
+
+COPY INTO RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG
+    (is_target, transaction_date, description, amount, institution_name,
+     category_major, category_minor, memo, is_transfer, id)
+FROM (
+    SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+    FROM @RAW_PROD.MONEYFORWARD.S3_STAGE
+)
+FILE_FORMAT = (FORMAT_NAME = 'RAW_PROD.MONEYFORWARD.MONEYFORWARD_CSV_FORMAT');
+
+MERGE INTO RAW_PROD.MONEYFORWARD.TRANSACTIONS AS target
+USING RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG AS source
+ON target.id = source.id
+WHEN NOT MATCHED THEN INSERT (is_target, transaction_date, description, amount,
+    institution_name, category_major, category_minor, memo, is_transfer, id)
+    VALUES (source.is_target, source.transaction_date, source.description, source.amount,
+    source.institution_name, source.category_major, source.category_minor,
+    source.memo, source.is_transfer, source.id);
+
+SELECT COUNT(*) AS loaded_row_count FROM RAW_PROD.MONEYFORWARD.TRANSACTIONS_STG;
