@@ -1,0 +1,28 @@
+# 認証情報・秘密鍵（CLAUDE.mdの「データ取扱いの原則」に基づく防御層）
+*.pem
+*.p8
+*.key
+connections.toml
+credentials
+.env
+.env.*
+
+# 実データCSV（sample_data/のダミーデータのみ例外的に許可）
+*.csv
+!sample_data/*.csv
+
+# dbt
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
