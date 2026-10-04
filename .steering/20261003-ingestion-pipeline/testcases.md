@@ -28,7 +28,7 @@
 - **ケース4**：`inbox`に同一`id`（テスト専用ダミーID）を含むファイルを2つ置いた状態で取り込みを実行。`TRANSACTIONS_STG`は2行になったが、`TRANSACTIONS`への挿入は1行のみ。確認後、テスト用データ（S3ファイル・Snowflakeの行）は削除済み。
 - **ケース7**：`git ls-files "*.csv"`で、リポジトリ内の全CSVが`sample_data/`のダミーファイル1件のみであることを確認。
 - **ケース8**：リポジトリ内（`.git`除く）に`*.pem`/`*.p8`/`connections.toml`/`credentials`に該当するファイルが存在しないことを確認。Snowflakeの秘密鍵・AWS認証情報は、実体がそもそもリポジトリ外（ユーザーのホームディレクトリ）にあるため、今回の構成では漏洩リスクは無い。
-    - **補足（課題候補）**：ただし、リポジトリに`.gitignore`が存在しない。認証情報の実害は無いが、今後誤って認証情報ファイルをリポジトリ内に作成してしまった場合に防ぐ仕組みが無い状態。`docs/backlog.md`への追加を別途検討する。
+    - **補足**：ただし、リポジトリに`.gitignore`が存在しない。認証情報の実害は無いが、今後誤って認証情報ファイルをリポジトリ内に作成してしまった場合に防ぐ仕組みが無い状態。`docs/backlog.md`に課題020として起票済み。
 - **ケース9**：取り込み前後で`RAW_PROD.MONEYFORWARD.TRANSACTIONS`が0件のまま変化しないことを確認。
 - **ケース10**：`load_moneyforward_transactions_dev.sql`の`FILE_FORMAT`参照を一時的に存在しないオブジェクト名に書き換えて意図的に失敗させ、スクリプトがエラー終了すること、アップロード済みファイルが`inbox`から削除されることを確認。確認後、SQLファイルは元の内容に復元済み（`git diff`で差分なしを確認）。
 - **ケース11**：PRODへの書き込みはClaude Codeの自動モードにより「本番操作」としてブロックされたため（意図した挙動）、ユーザーが`!`経由で実行。CSV1件が`RAW_PROD.MONEYFORWARD.TRANSACTIONS`へ登録され、`inbox`→`archive`への移動も確認。確認後、ユーザーが`!`経由で`DELETE`を実行し、`RAW_PROD.MONEYFORWARD.TRANSACTIONS`はテスト前と同じ0件に戻した（PROD操作のためユーザー実施）。
