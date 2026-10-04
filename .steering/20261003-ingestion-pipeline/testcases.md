@@ -15,8 +15,8 @@
 | 9 | 要件定義書「スコープ」（PROD/DEV環境分離） | DEV環境への取り込みが`RAW_PROD`側に影響しないことを確認する | `RAW_DEV`への取り込み前後で`RAW_PROD.MONEYFORWARD.TRANSACTIONS`の件数・内容に変化がない | | PASS | 2026-10-04 |
 | 10 | 基本設計書「実装後のCIレビューで判明した不具合と対応」（失敗時のinbox後始末） | Snowflakeへの取り込みが失敗するケースを作り、`upload_and_load_moneyforward.ps1`を実行する | スクリプトがエラーで停止し、アップロード済みファイルがS3の`inbox`から削除される（残留しない） | | PASS | 2026-10-04 |
 | 11 | 要件定義書「スコープ」（`RAW_PROD`・`RAW_DEV`両対応。サブエージェントレビューでの指摘） | **環境構築時の一回限りの確認。実施者はユーザー（Claudeは本番環境を直接操作しない）。** `sample_data/`のダミーCSVを使い、`upload_and_load_moneyforward.ps1 -Env prod`を実行する | S3の`inbox`（prod）へアップロードされ、Snowflakeへの取り込みが成功し、`RAW_PROD.MONEYFORWARD.TRANSACTIONS`にCSVと同じ件数のレコードが登録される。処理後、ファイルは`inbox`から`archive`へ移動している | | PASS | 2026-10-04 |
-| 12 | 基本設計書122行目「既存の`id`は内容が変わっても更新しない」（サブエージェントレビューでの指摘） | 既存の`id`（ケース1で登録済み）はそのままに、他の列（金額等）を変更したCSVを再取り込みする | `MERGE`の挿入件数は0件。`TRANSACTIONS`側の値は元のまま変化しない（新しい値で上書きされない） | | PASS | 2026-10-04 |
-| 13 | 基本設計書129-130行目「アップロード時にASCIIの日時ベース名に変換」（サブエージェントレビューでの指摘） | `archive`配下にアップロード済みのファイルのキー名を確認する | ファイル名が`transactions_<YYYYMMDDHHMMSS>.csv`形式（ASCII）になっている | | PASS | 2026-10-04 |
+| 12 | 基本設計書「取り込みSQL（概要）」の「既存の`id`は内容が変わっても更新しない」という記載（サブエージェントレビューでの指摘） | 既存の`id`（ケース1で登録済み）はそのままに、他の列（金額等）を変更したCSVを再取り込みする | `MERGE`の挿入件数は0件。`TRANSACTIONS`側の値は元のまま変化しない（新しい値で上書きされない） | | PASS | 2026-10-04 |
+| 13 | 基本設計書「ローカルのアップロード・取り込み処理」の「アップロード時にASCIIの日時ベース名に変換」という記載（サブエージェントレビューでの指摘） | `archive`配下にアップロード済みのファイルのキー名を確認する | ファイル名が`transactions_<YYYYMMDDHHMMSS>.csv`形式（ASCII）になっている | | PASS | 2026-10-04 |
 | 14 | 基本設計書「IAMロール・ポリシー」「外部ステージの利用権限」（PROD/DEVの権限分離。サブエージェントレビューでの指摘） | `SHOW GRANTS ON STAGE`等で、PROD用・DEV用の外部ステージの利用権限（`USAGE`）がそれぞれ`LOADER_PROD`・`LOADER_DEV`のみに付与されているか確認する | PROD用ステージは`LOADER_PROD`のみ、DEV用ステージは`LOADER_DEV`のみに`USAGE`権限が付与されている | | PASS | 2026-10-04 |
 | 15 | 基本設計書「IAMロール・ポリシー」（PROD/DEVのS3アクセス範囲が実際に分離されているか。ポリシー文面の確認ではなく、実際の操作可否で検証） | `RAW_PROD_S3_INTEGRATION`で`dev/`配下に、`RAW_DEV_S3_INTEGRATION`で`prod/`配下に、それぞれ一時ステージの作成と`LIST`を試みる。また`RAW_PROD_S3_INTEGRATION`で自分自身の`prod/`配下への一時ステージの作成と`LIST`も試みる | 相手環境の配下へは、いずれも一時ステージの**作成時点**で`STORAGE_ALLOWED_LOCATIONS`違反によりエラーになる（`LIST`まで到達しない）。自分自身の配下へは、ステージ作成・`LIST`ともにエラーにならない | | PASS | 2026-10-04 |
 
