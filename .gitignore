@@ -7,6 +7,10 @@ credentials
 .env
 .env.*
 
+# 実データCSV（sample_data/のダミーデータのみ例外的に許可）
+*.csv
+!sample_data/*.csv
+
 # dbt
 target/
 dbt_packages/
