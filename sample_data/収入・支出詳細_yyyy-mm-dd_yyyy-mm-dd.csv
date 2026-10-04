@@ -1,2 +1,7 @@
 "計算対象","日付","内容","金額（円）","保有金融機関","大項目","中項目","メモ","振替","ID"
 "1","1900/01/01","sample_shop","9999","sample_bank","XX費","XXXX","","0","Gasb-1QAZVDRG3LHHjytM1ENnGftvIgAz6QLSDAHSjA"
+"1","1900/01/02","sample_salary","300000","sample_bank","収入","給与","","0","DUMMY-0000000002"
+"1","1900/01/03","sample_grocery","3000","sample_bank2","食費","食料品","テストメモ","0","DUMMY-0000000003"
+"0","1900/01/04","sample_transfer","10000","sample_bank","振替","振替","","1","DUMMY-0000000004"
+"1","1900/01/05","sample_utility","5000","sample_bank2","水道光熱費","電気代","","0","DUMMY-0000000005"
+"1","1900/01/06","sample_refund","-1500","sample_bank","XX費","XXXX","返金","0","DUMMY-0000000006"
