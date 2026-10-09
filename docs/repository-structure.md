@@ -12,8 +12,11 @@ practice_data_platform/
 │   └── workflows/             # GitHub ActionsのCIワークフロー定義
 ├── docs/                      # 永続ドキュメント
 ├── .steering/                 # 作業単位のドキュメント
+├── requirements.txt           # Pythonパッケージ（dbt等）のバージョン固定
+├── .venv/                     # Python仮想環境（Git管理対象外）
 ├── dbt/                       # dbtプロジェクト本体（コード）
 │   ├── dbt_project.yml
+│   ├── profiles.yml           # 接続設定（値は環境変数から読み込む）
 │   ├── models/
 │   │   ├── staging/
 │   │   │   └── moneyforward/  # ソースシステム（取得元）ごとにフォルダを分ける
@@ -43,6 +46,7 @@ GitHub ActionsのCIワークフロー定義を格納する。PR作成・更新�
 - `design.md` — 基本設計書
 - `testcases.md` — テストケース一覧
 - `tasklist.md` — 実装タスク一覧
+- `release.md` — リリース手順書（PRODへのリリースを伴う作業単位のみ。作業単位の必須ドキュメントとするかは`docs/backlog.md` 023で検討する）
 
 ### `dbt/`
 dbtプロジェクト一式を格納する。リポジトリ直下に混在させず、専用フォルダに閉じ込めることで、ドキュメント（`docs/`・`.steering/`）とコードを明確に分離する。
@@ -53,11 +57,16 @@ dbtプロジェクト一式を格納する。リポジトリ直下に混在さ�
 - `seeds/`：CSVで持ち込む静的なマスタデータ
 - `macros/`：再利用可能なSQLの部品
 - `tests/`：`schema.yml`に書ききれない独自のテストロジック
+- `profiles.yml`：Snowflakeへの接続設定（`target`ごとのロール・DB等）。アカウント識別子・ユーザー名・秘密鍵のパスは環境変数から読み込み、値そのものは記載しない
+- `sources.yml`・`schema.yml`に当たるファイルは、dbtのコミュニティ標準に倣い、ディレクトリごとに`_<ディレクトリ名>__sources.yml`・`_<ディレクトリ名>__models.yml`の名前で置く
 
 モデルの詳細設計・テスト定義・テスト証跡は、`schema.yml`および`dbt docs`に委譲する（`CLAUDE.md`参照）。
 
 ### `ingestion/`
 CSVデータをS3等のクラウドストレージへアップロードする等、データ取り込みに関わるスクリプトを格納する。
+
+### `requirements.txt`・`.venv/`
+dbt等のPythonパッケージは、リポジトリ直下の仮想環境`.venv/`に導入し、バージョンを`requirements.txt`で固定する（ルールの詳細は`docs/development-standards.md`6章）。`.venv/`はGit管理対象外、`requirements.txt`はGit管理対象とする。
 
 ### `sample_data/`
 開発・動作確認用のダミーデータを格納する。実データと同じヘッダー構成・想定される値のパターン（収入・返金は正／支出は負の金額、未分類データ、複数媒体混在等）を含む架空のデータとし、個人情報は一切含まない。Git管理の対象とする。

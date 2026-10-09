@@ -50,6 +50,9 @@ flowchart LR
 ## 環境分離
 - 開発環境（`RAW_DEV`/`ANALYTICS_DEV`）と本番環境（`RAW_PROD`/`ANALYTICS_PROD`）は、データも権限も完全に分離する。**環境を跨いだ参照は行わない**（開発環境が本番環境のデータを直接読みに行くことはしない）
 - dbtの`target`（`dev`／`prod`）に連動させ、`sources.yml`の参照先データベースも含めて、`RAW_DEV`/`ANALYTICS_DEV`のセットと`RAW_PROD`/`ANALYTICS_PROD`のセットを丸ごと切り替える
+    - 書き込み先（`ANALYTICS_*`）とロール（`TRANSFORMER_*`）は、`dbt/profiles.yml`の`target`ごとの設定で切り替わる。既定の`target`は`dev`とする
+    - 参照先（`RAW_*`）は、`sources.yml`の`database`を`target`名から組み立てる（`RAW_{{ target.name | upper }}`）。このため`target`名は`dev`／`prod`の2つに限定する
+    - スキーマ（`STAGING`／`INTERMEDIATE`／`MARTS`）は作成済みで、`TRANSFORMER_*`ロールにはスキーマの作成権限がないため、`generate_schema_name`マクロを上書きし、dbtのカスタムスキーマ名をそのままスキーマ名として使う（dbtの既定の「`<targetのスキーマ>_<カスタムスキーマ名>`」という連結を行わない）
 - 開発環境（`RAW_DEV`）は、通常`sample_data/`のダミーCSVで検証する。dbtモデルの開発でリアルなデータのボリューム・パターンが必要になった場合のみ、**必要な分だけ本番データを一時的に投入し、確認が終わったら直ちに削除する**。常時複製（クローン等）はしない
 
 ## ロール・権限設計
