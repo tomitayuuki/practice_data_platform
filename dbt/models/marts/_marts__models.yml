@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: mart_transactions
+    description: >
+      分析・可視化用の取引明細。1行＝1取引で、収入・支出・計算対象外のすべての取引を含む。
+      カテゴリ別の月次支出推移は、transaction_type = 'expense' に絞り込み、
+      transaction_date の月 × category_major で amount を合計して求める。
+      収支は、transaction_type <> 'excluded' の行の signed_amount を合計して求める。
+    columns:
+      - name: transaction_id
+        description: 取引の一意キー。
+        data_tests:
+          - not_null
+          - unique
+      - name: transaction_date
+        description: 取引日。
+      - name: transaction_type
+        description: >
+          区分。上から順に判定する。
+          is_target が偽 → excluded、category_major が「収入」→ income、それ以外 → expense（返金を含む）。
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['income', 'expense', 'excluded']
+      - name: amount
+        description: >
+          グラフ用の金額。income は signed_amount のまま、expense は signed_amount の符号を反転した値
+          （返金は負の値になり、同じ大項目の支出から差し引かれる）。excluded は NULL。
+      - name: signed_amount
+        description: 元の符号のままの金額（収入・返金は正、支出は負）。
+      - name: description
+        description: 取引の内容。
+      - name: institution_name
+        description: 保有金融機関。
+      - name: category_major
+        description: 大項目。
+      - name: category_minor
+        description: 中項目。
+      - name: memo
+        description: メモ。
+      - name: is_target
+        description: 計算対象。
+      - name: is_transfer
+        description: 振替。
+
+unit_tests:
+  - name: test_mart_transactions_classification_and_amount
+    description: >
+      区分の判定と金額の算出がルールどおりであることを検証する（テストケース一覧No.16・17）。
+      (a) 給与 (b) 買い物 (c) 返金 (d) 振替 (e) 計算対象外にした収入。
+    model: mart_transactions
+    given:
+      - input: ref('stg_moneyforward__transactions')
+        rows:
+          - {transaction_id: a, is_target: true, category_major: 収入, amount: 300000}
+          - {transaction_id: b, is_target: true, category_major: 食費, amount: -3000}
+          - {transaction_id: c, is_target: true, category_major: 食費, amount: 1500}
+          - {transaction_id: d, is_target: false, category_major: 振替, amount: -10000}
+          - {transaction_id: e, is_target: false, category_major: 収入, amount: 50000}
+    expect:
+      rows:
+        - {transaction_id: a, transaction_type: income, amount: 300000, signed_amount: 300000}
+        - {transaction_id: b, transaction_type: expense, amount: 3000, signed_amount: -3000}
+        - {transaction_id: c, transaction_type: expense, amount: -1500, signed_amount: 1500}
+        - {transaction_id: d, transaction_type: excluded, amount: null, signed_amount: -10000}
+        - {transaction_id: e, transaction_type: excluded, amount: null, signed_amount: 50000}

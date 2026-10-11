@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_moneyforward__transactions
+    description: >
+      マネーフォワードの取引明細（source: moneyforward.transactions）と1対1で対応するstagingモデル。
+      主キーのリネーム（id → transaction_id）のみを行い、ビジネスロジックは含めない。
+      各列の詳細は source の description を参照。
+    columns:
+      - name: transaction_id
+        description: 取引の一意キー（sourceの`id`）。
+        data_tests:
+          - not_null
+          - unique
+      - name: transaction_date
+        description: 取引日。
+      - name: description
+        description: 取引の内容。
+      - name: amount
+        description: 金額（円）。収入・返金は正、支出は負。
+      - name: institution_name
+        description: 保有金融機関。
+      - name: category_major
+        description: 大項目。
+      - name: category_minor
+        description: 中項目。
+      - name: memo
+        description: メモ。
+      - name: is_target
+        description: 計算対象。
+      - name: is_transfer
+        description: 振替。
