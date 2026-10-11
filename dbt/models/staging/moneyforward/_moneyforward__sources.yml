@@ -1,0 +1,52 @@
+version: 2
+
+sources:
+  - name: moneyforward
+    description: >
+      マネーフォワードMEからエクスポートした「収入・支出詳細」CSVを取り込んだ生データ。
+      取り込み処理は ingestion/ 配下（.steering/20261003-ingestion-pipeline）。
+      targetがdevならRAW_DEV、prodならRAW_PRODを参照する。
+    database: "RAW_{{ target.name | upper }}"
+    schema: moneyforward
+    tables:
+      - name: transactions
+        description: 取引明細。1行＝1取引。取り込み時にIDで重複排除済み。
+        columns:
+          - name: id
+            description: 取引の一意キー。元のCSVでは`ID`。
+            data_tests:
+              - not_null
+              - unique
+          - name: is_target
+            description: >
+              元のCSVでは`計算対象`（1/0）。その取引をマネーフォワード上の収支の集計に含めるかどうか。
+              口座間の振替やNISAの積立のように資産の総額が増減しない取引は0（偽）となる。
+              マネーフォワードのアプリ上でユーザーが手動で計算対象外にした取引も0となる。
+            data_tests:
+              - not_null
+          - name: transaction_date
+            description: 取引日。元のCSVでは`日付`（YYYY/MM/DD）。
+            data_tests:
+              - not_null
+          - name: description
+            description: 取引の内容（店名等）。元のCSVでは`内容`。
+          - name: amount
+            description: >
+              金額（円）。元のCSVでは`金額（円）`。収入は正、支出は負の値。
+              返金は正の値で、元の支出と同じ大項目（例：食費）に分類される。
+            data_tests:
+              - not_null
+          - name: institution_name
+            description: 取引のあった金融機関・決済手段。元のCSVでは`保有金融機関`。
+          - name: category_major
+            description: >
+              マネーフォワードが付与したカテゴリの大分類。元のCSVでは`大項目`。
+              収入は「収入」。分類されていない取引も「未分類」の値を持つ。
+            data_tests:
+              - not_null
+          - name: category_minor
+            description: マネーフォワードが付与したカテゴリの中分類。元のCSVでは`中項目`。
+          - name: memo
+            description: ユーザーが付けたメモ。元のCSVでは`メモ`。
+          - name: is_transfer
+            description: 口座間の振替かどうか。元のCSVでは`振替`（1/0）。

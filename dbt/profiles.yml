@@ -1,0 +1,27 @@
+# 接続先の値（アカウント識別子・ユーザー名・秘密鍵のパス）は環境変数から読み込む。
+# 値そのものはリポジトリに含めない（.steering/20261004-dbt-modeling/design.md「接続設定」）。
+practice_data_platform:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      authenticator: snowflake_jwt
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      role: TRANSFORMER_DEV
+      database: ANALYTICS_DEV
+      warehouse: MAIN_WH
+      schema: staging
+      threads: 4
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      authenticator: snowflake_jwt
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      role: TRANSFORMER_PROD
+      database: ANALYTICS_PROD
+      warehouse: MAIN_WH
+      schema: staging
+      threads: 4
