@@ -10,4 +10,4 @@
 
 | IF名 | 対応する接続先 | 取得方法 | 取得頻度 | ファイル形式 | 格納先 | 稼働状況 | 備考 |
 |---|---|---|---|---|---|---|---|
-| 収入・支出詳細CSV | マネーフォワード | 手動CSVエクスポート | 週次 | CSV（Shift-JISエンコーディング） | `s3://practice-data-platform-raw/<prod\|dev>/moneyforward/transactions/inbox/`（取り込み成功後`archive/`へ移動。詳細は`.steering/20261003-ingestion-pipeline/design.md`） | 稼働中（取り込みパイプライン構築・動作確認済み。マネーフォワード側からの実データでの本番運用は未開始） | 列定義の詳細はdbtの`dbt/models/staging/moneyforward/_moneyforward__sources.yml`を参照 |
+| 収入・支出詳細CSV | マネーフォワード | 手動CSVエクスポート | 週次 | CSV（Shift-JISエンコーディング） | `s3://practice-data-platform-raw/<prod\|dev>/moneyforward/transactions/inbox/`（取り込み成功後`archive/`へ移動。詳細は`.steering/20261003-ingestion-pipeline/design.md`） | 稼働中（2026-10-11に実データでの本番運用を開始。`RAW_PROD`への取り込み後、dbtで`ANALYTICS_PROD`のstaging・martsへ変換） | 列定義の詳細はdbtの`dbt/models/staging/moneyforward/_moneyforward__sources.yml`を参照 |

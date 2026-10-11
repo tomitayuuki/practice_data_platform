@@ -132,5 +132,5 @@ order by 1, 2;
 ## 実施記録
 | 実施日 | 手順 | 実施者 | 結果 | 備考 |
 |---|---|---|---|---|
-| | 1 | Claude | | |
-| | 2〜4 | ユーザー | | |
+| 2026-10-11 | 1 | Claude | 完了 | 1-1〜1-4すべて期待結果どおり |
+| 2026-10-11 | 2〜4 | ユーザー | 完了 | 実データ3か月分（CSV 3ファイル）を`RAW_PROD`へ取り込み。`dbt run`はPASS=2（`mart_transactions`は213行）、`dbt test`はPASS=14。`MART_TRANSACTIONS`の件数は213で、カテゴリ別の月次支出額もユーザーがマネーフォワードMEのアプリと照合し問題なし。手順3の実施時、PowerShellの実行ポリシーにより仮想環境の有効化（`Activate.ps1`）が拒否されたため、`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`を設定し、仮想環境を有効化して`dbt`コマンドで実行した（手順書の`..\.venv\Scripts\dbt.exe`と同等） |
