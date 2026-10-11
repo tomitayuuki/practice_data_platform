@@ -32,7 +32,7 @@
     - [x] `tests/assert_mart_transactions_has_all_rows.sql`（stagingとmartsの件数の一致）を作成する
 - [x] 8. `dbt run`・`dbt test`を実行し、エラーがあれば修正する
 - [x] 9. テストケース一覧に従ってテストを実施し、結果と対応テスト名を記録する
-- [ ] 10. リリース手順書`release.md`を作成し、ユーザーのレビューを受ける（作成済み・レビュー待ち）
+- [x] 10. リリース手順書`release.md`を作成し、ユーザーのレビューを受ける
 - [x] 11. 永続ドキュメントを更新する
     - [x] `docs/development-standards.md`に「6. Python実行環境」を追加する（概要の対象一覧も更新する）
     - [x] `docs/repository-structure.md`に`requirements.txt`・`.venv/`・`dbt/`の実際の構成・`release.md`を反映する
