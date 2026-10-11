@@ -44,12 +44,16 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-**1-3. 接続用の環境変数を確認する**
+**1-3. 接続用の環境変数を確認し、現在のセッションに読み込む**
 ```powershell
-[bool]$env:SNOWFLAKE_ACCOUNT; [bool]$env:SNOWFLAKE_USER; [bool]$env:SNOWFLAKE_PRIVATE_KEY_PATH
+foreach ($v in 'SNOWFLAKE_ACCOUNT', 'SNOWFLAKE_USER', 'SNOWFLAKE_PRIVATE_KEY_PATH') {
+    $value = [Environment]::GetEnvironmentVariable($v, 'User')
+    Set-Item "env:$v" $value
+    "$v : $([bool]$value)"
+}
 ```
 - 期待結果：3つとも`True`と表示される（開発時にユーザー環境変数として設定済み。値そのものは表示しない）
-- `False`の場合は、PowerShellを開き直してから再確認する
+- ユーザー環境変数の設定より前に起動していたプロセス（Claude Code等）は、設定した値を引き継いでいない。そのため、ユーザー環境変数から直接読み取って確認し、そのまま現在のセッションに読み込む
 
 **1-4. PRODへのdbtの接続を確認する**
 ```powershell
@@ -63,6 +67,8 @@ cd ..
 - Claudeは、手順1-1〜1-4の結果（すべて期待結果どおりであること）をユーザーに報告する。以降はユーザーが実施する
 
 ### 2. 実データをRAW_PRODへ取り込む（実施者：ユーザー）
+- 手順2〜4は、新しく開いたPowerShellで実施する（新しく開いたPowerShellは、ユーザー環境変数を自動で読み込む）
+
 
 **2-1. マネーフォワードMEから「収入・支出詳細」のCSVをエクスポートする**
 - 取り込みたい期間（初回のため、可視化したい過去分すべて）を指定してエクスポートする
