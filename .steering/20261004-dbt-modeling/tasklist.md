@@ -39,6 +39,6 @@
     - [x] `docs/interfaces.md`の「列定義の詳細」の参照先を`sources.yml`の実際のパスに更新する
     - [x] `docs/architecture.md`にdbtの環境切り替え方法を追記する
     - [x] `docs/architecture.md`の「アカウントセキュリティ」に、Snowflakeへの接続に関わる情報の区分を追記する（テストケースNo.7の協議を受けて追加）
-- [ ] 12. PRを作成し、CIレビューを通す
-- [ ] 13. ユーザーの確認を受け、`main`にsquashマージし、featureブランチを削除する
-- [ ] 14. （ユーザー実施）`release.md`に沿ってPRODへリリースする
+- [x] 12. PRを作成し、CIレビューを通す
+- [x] 13. ユーザーの確認を受け、`main`にsquashマージし、featureブランチを削除する
+- [x] 14. （ユーザー実施）`release.md`に沿ってPRODへリリースする
