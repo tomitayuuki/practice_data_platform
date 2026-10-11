@@ -28,7 +28,7 @@ No.10・14・18〜20の期待値は、基本設計書「ダミーデータの追
 | 4 | 要件定義書「dbt実行環境」：`target: prod`の場合は`RAW_PROD`／`ANALYTICS_PROD`の組み合わせとなること | `dbt ls --target prod --output json`で、sourceとモデルの`database`・`schema`を確認する（`dbt ls`はプロジェクトの解析のみでSnowflakeに接続しないため、PRODへのアクセスは発生しない） | sourceが`RAW_PROD`.`MONEYFORWARD`、stagingモデルが`ANALYTICS_PROD`.`STAGING`、martsモデルが`ANALYTICS_PROD`.`MARTS`となる |  | PASS | 2026-10-09 |
 | 5 | 要件定義書「dbt実行環境」：環境を跨いだ参照をしないこと／基本設計書「環境の切り替え」（設定を誤っても権限エラーで止まる） | `SHOW GRANTS TO ROLE TRANSFORMER_DEV`で、`TRANSFORMER_DEV`の権限と、付与されている他のロールを確認する | `RAW_PROD`・`ANALYTICS_PROD`に関する権限が1件も無い。他のロールが付与されていない（付与されている場合は、そのロールにも`RAW_PROD`・`ANALYTICS_PROD`の権限が無い） |  | PASS | 2026-10-09 |
 | 6 | 基本設計書「dbtプロジェクトの構成」（マテリアライゼーション）・「スキーマ名（`generate_schema_name`マクロ）」 | `dbt run`後、各モデルが作成されたスキーマ名とオブジェクトの種類を確認する | `ANALYTICS_DEV.STAGING.STG_MONEYFORWARD__TRANSACTIONS`（view）、`ANALYTICS_DEV.MARTS.MART_TRANSACTIONS`（table）として作成される。`STAGING_MARTS`のような連結名のスキーマは作られない |  | PASS | 2026-10-09 |
-| 7 | 要件定義書「dbt実行環境」：認証情報がリポジトリ・Gitの管理対象に含まれないこと／基本設計書「接続設定」 | `profiles.yml`の内容と、Git管理対象のファイル全体に、秘密鍵の中身・アカウント識別子・ユーザー名が含まれていないかを確認する。また、`dbt run`後に`git status`を実行し、dbtの生成物が管理対象外であることを確認する | `profiles.yml`のアカウント識別子・ユーザー名・秘密鍵のパスは`env_var()`による参照のみ。Git管理対象に秘密鍵の中身・アカウント識別子・ユーザー名は含まれない。`dbt/target/`・`dbt/logs/`・`.user.yml`は`git status`に表示されない |  | FAIL（補足参照。対応方針をユーザーに確認中） | 2026-10-09 |
+| 7 | 要件定義書「dbt実行環境」：認証情報がリポジトリ・Gitの管理対象に含まれないこと／基本設計書「接続設定」 | `profiles.yml`の内容と、Git管理対象のファイル全体に、秘密鍵の中身・アカウント識別子が含まれていないかを確認する。また、`dbt run`後に`git status`を実行し、dbtの生成物が管理対象外であることを確認する | `profiles.yml`のアカウント識別子・ユーザー名・秘密鍵のパスは`env_var()`による参照のみ。Git管理対象に秘密鍵の中身・アカウント識別子は含まれない。`dbt/target/`・`dbt/logs/`・`.user.yml`は`git status`に表示されない |  | PASS（補足参照） | 2026-10-09 |
 
 ## source・staging
 
@@ -73,7 +73,9 @@ No.10・14・18〜20の期待値は、基本設計書「ダミーデータの追
 - **No.3**：`--target`指定なしの`dbt run`で、ログに`target='dev'`と表示。コンパイル済みSQLの参照先は`RAW_DEV.moneyforward.transactions`。`ANALYTICS_PROD`の`INFORMATION_SCHEMA`以外のオブジェクトは0件のまま。
 - **No.4**：`dbt ls --target prod`の結果、sourceが`RAW_PROD`.`moneyforward`、stagingが`ANALYTICS_PROD`.`staging`、martsが`ANALYTICS_PROD`.`marts`。Snowflakeへの接続は発生しない。
 - **No.5**：`TRANSFORMER_DEV`の権限は`RAW_DEV`・`ANALYTICS_DEV`・`MAIN_WH`に関するもののみ。付与されている他のロールは無い。
-- **No.7**：今回追加・変更したファイルには、秘密鍵の中身・アカウント識別子・ユーザー名は含まれない（`profiles.yml`は`env_var()`による参照のみ）。`dbt/target/`・`dbt/logs/`は`git status`に表示されない。ただし、**既存のGit管理対象ファイル`.steering/20260922-snowflake-infra-setup/setup.sql`（141〜146行目）に、Snowflakeのユーザー名がすでに記載されている**ことが判明したため、期待結果どおりではなくFAILとした。アカウント識別子・秘密鍵の中身はGit管理対象のどこにも含まれない。
+- **No.7**：今回追加・変更したファイルには、秘密鍵の中身・アカウント識別子・ユーザー名は含まれない（`profiles.yml`は`env_var()`による参照のみ）。`dbt/target/`・`dbt/logs/`は`git status`に表示されない。アカウント識別子・秘密鍵の中身はGit管理対象のどこにも含まれない。
+    - 初回実施時は、期待結果に「ユーザー名」も含めていたところ、既存のGit管理対象ファイル`.steering/20260922-snowflake-infra-setup/setup.sql`（141〜146行目）にSnowflakeのユーザー名が記載されていたため、FAILとした。
+    - ユーザーと協議し、ユーザー名はそれ自体では悪用できず、障害時の復旧でSQLから参照できるほうが都合がよいため、秘密としては扱わないこととした（漏らしてはならないのは秘密鍵の中身。アカウント識別子はコストをかけずに避けられるため公開しない）。基本設計書「接続設定」とNo.7の確認内容・期待結果を修正し、再確認の上PASSとした（2026-10-11）。
 - **No.10・14**：source・staging・martsとも8件。
 - **No.11**：sourceとstaging（`id`と`transaction_id`を対応させて比較）の差分は0行。列名・型は基本設計書の列定義どおり。
 - **No.16・17**：unit testの有効性を確かめるため、一時的に区分の判定順（計算対象外と収入）を入れ替えて実行し、unit testが失敗することを確認した後、元に戻した。
