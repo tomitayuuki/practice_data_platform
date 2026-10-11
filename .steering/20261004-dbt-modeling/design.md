@@ -194,4 +194,4 @@ dbt/
 | `docs/development-standards.md` | 「6. Python実行環境」を追加（venvの利用、`requirements.txt`によるバージョン固定と管理、環境の作成手順） |
 | `docs/repository-structure.md` | `requirements.txt`・`.venv/`の扱い、`dbt/`配下の実際の構成（`profiles.yml`等）を反映する。`.steering/`配下の固定ファイル名に、リリースを伴う作業単位で作成する`release.md`（リリース手順書）を追加する |
 | `docs/interfaces.md` | 「列定義の詳細」の参照先を`dbt/models/staging/moneyforward/_moneyforward__sources.yml`に更新する |
-| `docs/architecture.md` | dbtの環境切り替え方法（`target`名からの参照先DBの決定、`generate_schema_name`の上書き）を追記する |
+| `docs/architecture.md` | dbtの環境切り替え方法（`target`名からの参照先DBの決定、`generate_schema_name`の上書き）を追記する。「アカウントセキュリティ」に、Snowflakeへの接続に関わる情報の区分（「接続設定」の秘密の定義）を追記する |

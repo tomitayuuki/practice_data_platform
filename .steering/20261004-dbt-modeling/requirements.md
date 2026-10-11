@@ -68,6 +68,7 @@
 - `docs/repository-structure.md`に、`requirements.txt`・`.venv/`の扱いを追記する
 - `docs/interfaces.md`の「列定義の詳細」の参照先（`sources.yml`）を、実際のファイルパスに更新する
 - `docs/backlog.md`に、CDによるリリース自動化（022）・作業単位ドキュメントの様式整備（023）の課題を起票する（起票済み）
+- `docs/architecture.md`の「アカウントセキュリティ」に、Snowflakeへの接続に関わる情報の区分（秘密鍵の中身・アカウント識別子・ユーザー名等の扱い）を追記する（実装中のテストケースNo.7の協議を受けて追加）
 
 ## 受け入れ基準
 - `sample_data/`のダミーCSVを取り込んだ`RAW_DEV`に対して`dbt run`・`dbt test`（`target: dev`）が成功すること

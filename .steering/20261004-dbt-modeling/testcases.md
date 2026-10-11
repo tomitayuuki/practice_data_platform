@@ -60,7 +60,7 @@ No.10・14・18〜20の期待値は、基本設計書「ダミーデータの追
 | 21 | 要件定義書「受け入れ基準」：`dbt run`・`dbt test`（`target: dev`）が成功すること／基本設計書「テスト方針」（重要度`error`、外部パッケージを導入しない） | `RAW_DEV`にダミーCSVが取り込まれた状態で、`dbt run`・`dbt test`を実行する。あわせて、テストの`severity`を`warn`にしている箇所が無いこと、`packages.yml`が無いことを確認する | すべてのモデルの作成と、すべてのテスト（unit testを含む）が成功する。`severity: warn`の指定が無く、`packages.yml`が存在しない |  | PASS | 2026-10-09 |
 | 22 | 要件定義書「リリース」：初回リリースに必要な作業を上から順に実施すれば完了する手順書があること／基本設計書「リリース手順（概要）」 | `release.md`の内容を確認する | 基本設計書の1〜6（前提の確認、実データの`RAW_PROD`への取り込み、`dbt run --target prod`、`dbt test --target prod`、結果の確認、失敗時の対応）がすべて、具体的なコマンド・操作として順番に記載されている |  | PASS | 2026-10-09 |
 | 23 | 要件定義書「受け入れ基準」：リリース手順書がユーザーのレビューで承認されていること | ユーザーに`release.md`のレビューを依頼する | ユーザーの承認が得られる |  |  |  |
-| 24 | 要件定義書「永続ドキュメントの更新」／基本設計書「永続ドキュメントの更新」 | 各永続ドキュメントの更新内容を確認する | `development-standards.md`に「6. Python実行環境」、`repository-structure.md`に`requirements.txt`・`.venv/`・`dbt/`の実際の構成・`release.md`、`interfaces.md`に`sources.yml`の実際のパス、`architecture.md`にdbtの環境切り替え方法、`backlog.md`に022・023が、それぞれ反映されている |  | PASS | 2026-10-09 |
+| 24 | 要件定義書「永続ドキュメントの更新」／基本設計書「永続ドキュメントの更新」 | 各永続ドキュメントの更新内容を確認する | `development-standards.md`に「6. Python実行環境」、`repository-structure.md`に`requirements.txt`・`.venv/`・`dbt/`の実際の構成・`release.md`、`interfaces.md`に`sources.yml`の実際のパス、`architecture.md`にdbtの環境切り替え方法と、Snowflakeへの接続に関わる情報の区分、`backlog.md`に022・023が、それぞれ反映されている |  | PASS | 2026-10-09 |
 
 ## テストの対象外とした項目
 - `target`名を`dev`／`prod`以外にした場合の挙動：運用上の制約であり、それ以外の名前で実行する想定が無いため
