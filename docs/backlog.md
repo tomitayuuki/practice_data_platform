@@ -324,7 +324,7 @@
 - **対応予定**: `.steering/20261004-dbt-modeling`完了後
 - **担当者**: tomitayuki / Claude Code
 - **ステータス**: クローズ
-- **対応実績**: 2026-10-18 `.steering/20261012-dbt-cd`で対応し、同日PRODでの初回リリース（マージ契機・手動実行の両方）を完了。GitHub Actionsのワークフロー（`.github/workflows/dbt-release.yml`）とEnvironment `prod`による承認、CD専用のサービスユーザー`SVC_DBT_PROD`（`TRANSFORMER_PROD`のみ）を導入。リリースは`dbt build`で行い、上流のテストが失敗した場合はmartを作り直さない。dbtのリリースのみの場合はリリース手順書を作らない運用とし、手順を`docs/development-standards.md`4.5に記載。取り込みに連動した自動実行は025として起票
+- **対応実績**: 2026-10-18 `.steering/20261012-dbt-cd`で対応し、同日PRODでの初回リリース（マージ契機・手動実行の両方）を完了。dbtに関係しない資材のみのマージでCDが起動しないことの確認（テストケース一覧No.18）は、実施記録のPRのマージ後に行い、次に`main`へ取り込むPRで記録する。GitHub Actionsのワークフロー（`.github/workflows/dbt-release.yml`）とEnvironment `prod`による承認、CD専用のサービスユーザー`SVC_DBT_PROD`（`TRANSFORMER_PROD`のみ）を導入。リリースは`dbt build`で行い、上流のテストが失敗した場合はmartを作り直さない。dbtのリリースのみの場合はリリース手順書を作らない運用とし、手順を`docs/development-standards.md`4.5に記載。取り込みに連動した自動実行は025として起票
 
 ### 023: 作業単位ドキュメントの様式整備
 
