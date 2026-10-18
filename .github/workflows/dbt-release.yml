@@ -34,6 +34,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # 以降のステップでgitの認証情報は使わないため残さない
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
