@@ -57,7 +57,8 @@ CDのワークフローは`main`でしか動かないため（基本設計書「
 - No.13：`SHOW GRANTS TO USER SVC_DBT_PROD`で付与ロールは`TRANSFORMER_PROD`のみ。`DESC USER`で`TYPE`が`SERVICE`、`DEFAULT_ROLE`が`TRANSFORMER_PROD`、`DEFAULT_WAREHOUSE`が`MAIN_WH`、`RSA_PUBLIC_KEY_FP`が設定済み。なお`HAS_PASSWORD`は`DESC USER`の出力に含まれないため、`SHOW USERS LIKE 'SVC_DBT_PROD'`の`has_password`列（`false`）で確認した
 - No.14：承認後に成功。ログは`target='prod'`・`Done. PASS=16 WARN=0 ERROR=0 SKIP=0`、`SNOWFLAKE_USER`は`SVC_DBT_PROD`。アカウント識別子・秘密鍵は`***`で伏せ字となり、ログ全体で秘密鍵の形式の文字列・大項目の値・`円`を含む行は0件。秘密鍵の削除ステップも実行された。`LAST_ALTERED`は01:25:35（UTC）で、実行中の時刻
 - No.15：依頼者が新しいデータをPRODに取り込んだ後、`main`で手動実行（run 39089668410、`workflow_dispatch`契機）し、承認後に成功（`PASS=16`）。`LAST_ALTERED`は02:20:27（UTC）に更新された。martの件数が増えたことは依頼者が確認した（受け入れテスト）
-- No.16：手動実行を2回続けて行い、1件目（run 39089938685）が承認待ち（`waiting`）、2件目（run 39089956563）がその後ろで待機（`pending`）となり、基本設計書の記述どおりだった。2件とも却下し、いずれもステップ数0で終了（GitHub上の表示は`failure`）。`LAST_ALTERED`は02:20:27（UTC）のまま変わらなかった
+- No.16：手動実行を2回続けて行い、1件目（run 39089938685）が承認待ち（`waiting`）、2件目（run 39089956563）がその後ろで待機（`pending`）となり、基本設計書の記述どおりだった。2件とも却下し、いずれもステップ数0で終了した。却下した実行も、GitHub上の結果の表示は`failure`となる（却下の記録は承認の履歴に残る）。`LAST_ALTERED`は02:20:27（UTC）のまま変わらなかった
+- No.18（予定）：実施記録のPRは`.steering/`配下に加えて`docs/backlog.md`も変更しているが、いずれもワークフローの`paths`の対象外（dbtに関係しない資材）のため、確認の有効性に影響は無い
 - No.17：`feature/20261012-dbt-cd-release-record`を指定した手動実行（run 39090119706）は、承認待ちにならずステップ数0で失敗した。注釈は`Branch "feature/20261012-dbt-cd-release-record" is not allowed to deploy to prod due to environment protection rules.`。`LAST_ALTERED`は02:20:27（UTC）のまま変わらなかった
 
 ### No.1
