@@ -98,6 +98,12 @@ snow sql -q "SHOW GRANTS TO USER SVC_DBT_PROD; DESC USER SVC_DBT_PROD"
 ### 5. GitHubに秘密情報を登録し、ローカルの秘密鍵を削除する（実施者：ユーザー）
 
 **5-1. 秘密鍵とアカウント識別子を、Environment `prod`のSecretsに登録する**
+登録する前に、登録元の値が空でないことを確認する（値そのものは表示しない）。
+```powershell
+[bool][Environment]::GetEnvironmentVariable('SNOWFLAKE_ACCOUNT', 'User'); Test-Path "$keyDir\svc_dbt_prod_key.p8"
+```
+- 期待結果：`True`が2つ表示される。`False`がある場合は、登録せずに中断する
+
 ```powershell
 Get-Content "$keyDir\svc_dbt_prod_key.p8" -Raw | gh secret set SNOWFLAKE_PRIVATE_KEY --env prod --repo tomitayuuki/practice_data_platform
 [Environment]::GetEnvironmentVariable('SNOWFLAKE_ACCOUNT', 'User') | gh secret set SNOWFLAKE_ACCOUNT --env prod --repo tomitayuuki/practice_data_platform

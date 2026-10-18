@@ -33,7 +33,7 @@
 | 019 | Snowflake Cortex Code Pluginの導入検討 | tomitayuki | 着手不要 |
 | 020 | .gitignoreの整備（認証情報の誤コミット防止） | tomitayuki / Claude Code | クローズ |
 | 021 | 振替データの実際の出力形式の確認 | tomitayuki | 着手不要 |
-| 022 | CDによるdbtリリースの自動化 | tomitayuki / Claude Code | クローズ |
+| 022 | CDによるdbtリリースの自動化 | tomitayuki / Claude Code | 対応中 |
 | 023 | 作業単位ドキュメントの様式整備 | tomitayuki / Claude Code | クローズ |
 | 024 | CIレビューの指示（観点）の見直し | tomitayuki / Claude Code | クローズ |
 | 025 | データの取り込みに連動したdbtの自動実行 | tomitayuki / Claude Code | 着手不要 |
@@ -323,8 +323,8 @@
 - **完了条件**: `main`へのマージ後、ユーザーの承認操作のみでPRODへのdbtリリースが完了する状態
 - **対応予定**: `.steering/20261004-dbt-modeling`完了後
 - **担当者**: tomitayuki / Claude Code
-- **ステータス**: クローズ
-- **対応実績**: 2026-10-18 `.steering/20261012-dbt-cd`で対応。GitHub Actionsのワークフロー（`.github/workflows/dbt-release.yml`）とEnvironment `prod`による承認、CD専用のサービスユーザー`SVC_DBT_PROD`（`TRANSFORMER_PROD`のみ）を導入。リリースは`dbt build`で行い、上流のテストが失敗した場合はmartを作り直さない。dbtのリリースのみの場合はリリース手順書を作らない運用とし、手順を`docs/development-standards.md`4.5に記載。取り込みに連動した自動実行は025として起票
+- **ステータス**: 対応中
+- **対応実績**: 2026-10-18 `.steering/20261012-dbt-cd`で対応（PRODでの初回リリースの完了後、実施記録のPRでクローズする）。GitHub Actionsのワークフロー（`.github/workflows/dbt-release.yml`）とEnvironment `prod`による承認、CD専用のサービスユーザー`SVC_DBT_PROD`（`TRANSFORMER_PROD`のみ）を導入。リリースは`dbt build`で行い、上流のテストが失敗した場合はmartを作り直さない。dbtのリリースのみの場合はリリース手順書を作らない運用とし、手順を`docs/development-standards.md`4.5に記載。取り込みに連動した自動実行は025として起票
 
 ### 023: 作業単位ドキュメントの様式整備
 
