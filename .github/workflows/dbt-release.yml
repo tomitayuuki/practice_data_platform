@@ -1,0 +1,62 @@
+# dbtをPROD環境へリリースするCD（.steering/20261012-dbt-cd/design.md）。
+# 承認（Environment `prod`の承認者による操作）を経てから dbt build --target prod を実行する。
+name: dbt Release (PROD)
+
+on:
+  push:
+    branches: [main]
+    # dbtに関係する資材が変わった場合のみ起動する
+    paths:
+      - "dbt/**"
+      - "requirements.txt"
+      - ".github/workflows/dbt-release.yml"
+  # 新しいデータの取り込み後の作り直し等、資材の変更が無くてもリリースできるようにする
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 承認待ちの古い実行は新しい実行に置き換える。実行中のリリースは途中で止めない
+# （一部のモデルだけが作り直された状態を避けるため）
+concurrency:
+  group: dbt-release-prod
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # 承認者・実行を許可するブランチ（mainのみ）・Secretsは、Environment側で設定する
+    environment: prod
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: SVC_DBT_PROD
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dbt
+        run: pip install -r requirements.txt
+
+      - name: Write private key
+        env:
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          umask 077
+          key_path="$RUNNER_TEMP/snowflake_key.p8"
+          printf '%s\n' "$SNOWFLAKE_PRIVATE_KEY" > "$key_path"
+          echo "SNOWFLAKE_PRIVATE_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      # 依存関係の順に「テスト→作成」を進め、失敗した箇所より下流は作り直さない
+      - name: dbt build
+        working-directory: dbt
+        run: dbt build --target prod --profiles-dir .
+
+      - name: Remove private key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/snowflake_key.p8"

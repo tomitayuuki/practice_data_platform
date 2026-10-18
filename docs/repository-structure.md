@@ -9,7 +9,7 @@
 practice_data_platform/
 ├── CLAUDE.md
 ├── .github/
-│   └── workflows/             # GitHub ActionsのCIワークフロー定義
+│   └── workflows/             # GitHub ActionsのCI／CDワークフロー定義
 ├── docs/                      # 永続ドキュメント
 ├── .steering/                 # 作業単位のドキュメント
 ├── requirements.txt           # Pythonパッケージ（dbt等）のバージョン固定
@@ -32,7 +32,10 @@ practice_data_platform/
 ## 各ディレクトリの役割
 
 ### `.github/workflows/`
-GitHub ActionsのCIワークフロー定義を格納する。PR作成・更新時の自動コードレビュー等、Git運用に関わる自動化を担う（詳細は`docs/development-standards.md`のGit規約を参照）。
+GitHub ActionsのCI／CDワークフロー定義を格納する。Git運用・リリースに関わる自動化を担う（詳細は`docs/development-standards.md`のGit規約を参照）。
+
+- `claude-review.yml`：PR作成・更新時の自動コードレビュー（CI、4.3）
+- `dbt-release.yml`：dbtのPROD環境へのリリース（CD、4.5）
 
 ### `docs/`
 データ基盤全体の「北極星」となる永続ドキュメントを格納する。基盤全体の設計・方針が変わらない限り更新されない。詳細は`CLAUDE.md`の「永続ドキュメントとその役割」を参照。
