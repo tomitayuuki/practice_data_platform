@@ -11,7 +11,7 @@ flowchart LR
     S3 -->|ストレージ統合| STG[Snowflake外部ステージ]
     STG -->|COPY INTO| TMP[一時テーブル]
     TMP -->|MERGE（ID重複排除）| RAW[(RAW_PROD DB<br/>スキーマ: moneyforward)]
-    RAW -->|dbt（ローカル実行）| ANALYTICS[(ANALYTICS_PROD / ANALYTICS_DEV DB<br/>staging→intermediate→marts)]
+    RAW -->|dbt（本番：GitHub ActionsによるCD／開発：ローカル実行）| ANALYTICS[(ANALYTICS_PROD / ANALYTICS_DEV DB<br/>staging→intermediate→marts)]
     ANALYTICS --> SNOWSIGHT[Snowsight<br/>可視化]
 ```
 
@@ -22,7 +22,7 @@ flowchart LR
 | データ取得 | マネーフォワードからのCSVエクスポート | 手動ダウンロード |
 | 生データ保管 | 実データ（CSV）の保管 | Amazon S3 |
 | DWH | データの保管・変換の実行基盤 | Snowflake（クラウド：AWS、リージョン：ap-northeast-1（東京）、エディション：Standard） |
-| 変換 | RAW_PRODからANALYTICS_PRODへの加工 | dbt（ローカル実行） |
+| 変換 | RAW_PRODからANALYTICS_PRODへの加工 | dbt（本番へのリリースはGitHub ActionsによるCD、開発はローカル実行） |
 | 可視化 | 分析結果の閲覧 | Snowsight（不便な場合は別途見直す） |
 
 ## データフロー
@@ -31,7 +31,7 @@ flowchart LR
 2. SnowflakeとS3を**ストレージ統合（Storage Integration）**で接続する。認証キーを直接扱わず、AWS IAMロールをSnowflakeが引き受ける方式とする
 3. `COPY INTO`でS3のCSVを一時テーブルに読み込む。ファイルフォーマット設定でShift-JISを指定し、UTF-8として取り込む
 4. 一時テーブルからRAW_PRODテーブルへ、`ID`列（`docs/development-standards.md`の`transaction_id`に対応）をキーに`MERGE`する。これにより、同一期間のCSVを再取り込みしても重複が残らない状態をRAW_PRODの時点で担保する（完全な生データ履歴はS3の生ファイルに委ねる）
-5. dbt（ローカルPCから実行）が、RAW_PRODを読み取りANALYTICS_PROD（またはANALYTICS_DEV）のstaging/intermediate/marts層を作成・更新する
+5. dbtが、RAW_PRODを読み取りANALYTICS_PROD（またはANALYTICS_DEV）のstaging/intermediate/marts層を作成・更新する。PRODへの実行は、GitHub ActionsのCD（`.github/workflows/dbt-release.yml`）が、`main`へのdbt関連の資材のマージ、または手動実行を契機に、ユーザーの承認を経て行う（詳細は`docs/development-standards.md`4.5）。DEVへの実行は、開発時にローカルPCから行う
 6. Snowsightでmartsのデータを閲覧する
 
 ## Snowflakeデータベース・スキーマ構成
@@ -56,7 +56,15 @@ flowchart LR
 - 開発環境（`RAW_DEV`）は、通常`sample_data/`のダミーCSVで検証する。dbtモデルの開発でリアルなデータのボリューム・パターンが必要になった場合のみ、**必要な分だけ本番データを一時的に投入し、確認が終わったら直ちに削除する**。常時複製（クローン等）はしない
 
 ## ロール・権限設計
-Snowflakeの操作者は自分（tomitayuki）のみであり、ユーザーは1つ作成し、目的別のロールを付与して`USE ROLE`で切り替える。Claude Codeがローカルでdbt等を実行する場合も、同じユーザー・ロールの仕組みをそのまま利用する（Claude Code専用のユーザーは設けない）。
+Snowflakeの操作者は自分（tomitayuki）のみであり、人が使うユーザーは1つ作成し、目的別のロールを付与して`USE ROLE`で切り替える。Claude Codeがローカルでdbt等を実行する場合も、同じユーザー・ロールの仕組みをそのまま利用する（Claude Code専用のユーザーは設けない）。
+
+自動処理（CD）がSnowflakeへ接続する場合は、人が使うユーザーとは別に、自動処理専用のサービスユーザーを作成し、必要最小限のロールのみを付与する。人が使うユーザーは全ロールを持つため、その鍵を自動処理の実行環境（GitHub等）に置くと、漏れた場合の影響が基盤全体に及ぶためである。GitHub Actionsの実行環境の接続元IPアドレスは多数かつ頻繁に変わるため、接続元の制限（ネットワークポリシー）は設けず、キーペア認証のみでのログインと最小限のロールで守る。
+
+| ユーザー | 種別 | 付与するロール | 用途 |
+|---|---|---|---|
+| `TOMITAYUKI` | 人が使うユーザー（MFA有効） | 下表のすべてのロール | 開発・運用の作業全般 |
+| `SVC_DBT_PROD` | サービスユーザー（`TYPE = SERVICE`。パスワード・MFAを持たず、キーペア認証のみ） | `TRANSFORMER_PROD`のみ | CD（GitHub Actions）によるdbtのPRODへのリリース（`.steering/20261012-dbt-cd`） |
+
 
 環境分離の方針に合わせ、書き込み・参照を伴うロールはすべて環境ごと（`_DEV`/`_PROD`）に分割し、環境を跨いだ権限を持たせない。
 
@@ -80,7 +88,8 @@ Snowflakeの操作者は自分（tomitayuki）のみであり、ユーザーは1
 | 情報 | 区分 | 扱い |
 |---|---|---|
 | 秘密鍵の中身 | 秘密 | 絶対に漏らさない。リポジトリに含めない・読み込まない・出力しない（`CLAUDE.md`のデータ取扱いの原則） |
-| アカウント識別子 | なるべく出さない | それだけでは悪用できないが、攻撃対象の手がかりになる。コストをかけずに避けられるため、リポジトリに含めない（dbtの`profiles.yml`では環境変数から読み込む） |
+| アカウント識別子 | なるべく出さない | それだけでは悪用できないが、攻撃対象の手がかりになる。コストをかけずに避けられるため、リポジトリに含めない（dbtの`profiles.yml`では環境変数から読み込む。CDではGitHubのEnvironment `prod`のSecretsから渡し、Actionsのログでは伏せ字になる） |
+| `SVC_DBT_PROD`の秘密鍵の中身 | 秘密 | GitHubのEnvironment `prod`のSecretsにのみ保管し、承認されたCDのジョブからのみ読める。ローカルには残さない（作り直す場合は、キーペアを作り直して公開鍵を登録し直す） |
 | ユーザー名、秘密鍵の置き場所（パス） | 秘密として扱わない | それ自体では悪用できない。障害時の復旧（権限の付け直し等）で参照できるよう、リポジトリに記載してよい |
 
 - 上記の区分は、`.steering/20261004-dbt-modeling`の実施中に、既存のインフラ構築SQLにユーザー名が記載されていたことを契機にユーザーと協議して定めた

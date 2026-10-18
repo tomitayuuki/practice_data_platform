@@ -1,0 +1,21 @@
+# 実装タスク一覧（作業単位）
+
+- [x] 1. CDのワークフローを作成する（`.github/workflows/dbt-release.yml`）
+- [x] 2. GitHubのEnvironment `prod`を作成する（承認者：`tomitayuuki`、実行を許可するブランチ：`main`のみ）
+- [x] 3. リリース手順書を作成する（`release.md`）
+    - [x] 3-1. キーペアの作成、`SVC_DBT_PROD`の作成、Secretsの登録
+    - [x] 3-2. マージで起動したリリースの承認、手動実行・却下・`main`以外のブランチの手動実行の確認
+    - [x] 3-3. 受け入れテスト
+- [x] 4. テストを実施する（テストケース一覧No.1〜9）
+- [x] 5. 永続ドキュメントを更新する
+    - [x] 5-1. `docs/architecture.md`
+    - [x] 5-2. `docs/development-standards.md`（4.5の追加、5.1・5.6の更新）
+    - [x] 5-3. `CLAUDE.md`
+    - [x] 5-4. `docs/repository-structure.md`
+    - [x] 5-5. `docs/backlog.md`（022を対応中に更新、取り込みに連動した自動実行の起票）
+- [x] 6. テストを実施する（テストケース一覧No.10〜11）
+- [ ] 7. PRを作成し、CIレビューを通す
+- [ ] 8. ユーザーの確認を受け、`main`にsquashマージし、featureブランチを削除する
+- [ ] 9. （ユーザー実施）`release.md`に沿ってリリースする（マージ後のテストNo.12〜17の確認はClaude）
+- [ ] 10. 実施記録・テスト結果を記録し、`docs/backlog.md`の022をクローズして、別のPRで`main`に取り込む
+- [ ] 11. テストケース一覧No.18を確認し、次に`main`へ取り込むPRで結果を追記する
