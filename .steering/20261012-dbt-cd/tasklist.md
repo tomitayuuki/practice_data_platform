@@ -12,7 +12,7 @@
     - [x] 5-2. `docs/development-standards.md`（4.5の追加、5.1・5.6の更新）
     - [x] 5-3. `CLAUDE.md`
     - [x] 5-4. `docs/repository-structure.md`
-    - [x] 5-5. `docs/backlog.md`（022のクローズ、取り込みに連動した自動実行の起票）
+    - [x] 5-5. `docs/backlog.md`（022を対応中に更新、取り込みに連動した自動実行の起票）
 - [x] 6. テストを実施する（テストケース一覧No.10〜11）
 - [ ] 7. PRを作成し、CIレビューを通す
 - [ ] 8. ユーザーの確認を受け、`main`にsquashマージし、featureブランチを削除する
