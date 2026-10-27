@@ -42,15 +42,24 @@ CDのワークフローは`main`でしか動かないため（基本設計書「
 
 | No. | テスト区分 | 対象要件 | 確認内容 | 期待結果 | 対応テスト名（任意） | 実施結果 | 実施日 |
 |---|---|---|---|---|---|---|---|
-| 12 | 総合 | 要件定義書「リリースの契機」（dbtに関係する資材のマージで始まる）・「リリースの承認」（承認するまでPRODに反映されない） | 本作業のPR（`.github/workflows/dbt-release.yml`を含む）のマージ後、ワークフローの実行状況を確認する | ワークフローが起動し、承認待ちで止まっている。dbtを実行するジョブが始まっていない |  |  |  |
-| 13 | 結合 | 基本設計書「CD専用のSnowflakeユーザー」 | 依頼者がユーザーを作成した後、`SHOW GRANTS TO USER SVC_DBT_PROD`・`DESC USER SVC_DBT_PROD`で、ユーザーの設定を確認する（読み取りのみ） | 付与されたロールが`TRANSFORMER_PROD`のみ。`TYPE`が`SERVICE`、`DEFAULT_ROLE`が`TRANSFORMER_PROD`、`DEFAULT_WAREHOUSE`が`MAIN_WH`、`HAS_PASSWORD`が`false`、`RSA_PUBLIC_KEY_FP`が設定されている |  |  |  |
-| 14 | 総合 | 要件定義書「リリースの結果」（成功が依頼者に分かる）／基本設計書「リリースの処理」・「CD専用のSnowflakeユーザー」・「Actionsのログの公開範囲」 | 依頼者がNo.12の承認待ちを承認した後、実行結果とログを確認する。PRODの`MART_TRANSACTIONS`の`LAST_ALTERED`を、`ANALYTICS_PROD.INFORMATION_SCHEMA.TABLES`で確認する（読み取りのみ） | 実行が成功で終わる。ログ上、`target`が`prod`で、すべてのモデル・テストが成功している。`LAST_ALTERED`が承認後の時刻になっている（ワークフローが渡す認証情報は`SVC_DBT_PROD`のもののみのため（No.4）、成功したことで`SVC_DBT_PROD`で接続できたことも確認できる）。ログに秘密鍵・アカウント識別子が表示されず（伏せ字）、取引の内容（内容列の値・金額）も表示されていない |  |  |  |
-| 15 | 総合 | 要件定義書「リリースの契機」（資材の変更が無くても手動で始められる） | 依頼者が`main`を指定して手動実行し、承認した後、実行結果と`MART_TRANSACTIONS`の`LAST_ALTERED`を確認する | 手動実行が承認待ちで止まり、承認後に成功で終わる。`LAST_ALTERED`が承認後の時刻に更新されている |  |  |  |
-| 16 | 総合 | 要件定義書「リリースの承認」（承認するまでPRODに反映されない）／基本設計書「概要」（却下すると何もせず終了する）・「リリースの承認」（同時に1つだけ動かす） | 依頼者が`main`を指定して手動実行を2回続けて行い、2件の実行の状態を確認する。その後、承認待ちの実行を却下し、残った実行も承認待ちになったら却下する。実行結果と`MART_TRANSACTIONS`の`LAST_ALTERED`を確認する | 1件目が承認待ち、2件目がその後ろで待っている（基本設計書の記述と異なる場合は、実際の挙動を記録し、実施記録のPRで基本設計書・`docs/development-standards.md`4.5.3を修正する）。却下したジョブはdbtを実行せずに終わる（却下として記録される）。`LAST_ALTERED`がNo.15から変わらない |  |  |  |
-| 17 | 総合 | 基本設計書「リリースの契機」（`main`以外のブランチの手動実行は拒否する） | 実施記録のPR用のブランチ（マージ後の`main`から作るため、ワークフローの定義を含む）を指定して手動実行し、実行結果を確認する | Environment `prod`の制限（実行を許可するブランチ）によりジョブが拒否され、承認待ちにならず、dbtは実行されない。`LAST_ALTERED`がNo.16から変わらない |  |  |  |
+| 12 | 総合 | 要件定義書「リリースの契機」（dbtに関係する資材のマージで始まる）・「リリースの承認」（承認するまでPRODに反映されない） | 本作業のPR（`.github/workflows/dbt-release.yml`を含む）のマージ後、ワークフローの実行状況を確認する | ワークフローが起動し、承認待ちで止まっている。dbtを実行するジョブが始まっていない |  | PASS | 2026-10-18 |
+| 13 | 結合 | 基本設計書「CD専用のSnowflakeユーザー」 | 依頼者がユーザーを作成した後、`SHOW GRANTS TO USER SVC_DBT_PROD`・`DESC USER SVC_DBT_PROD`で、ユーザーの設定を確認する（読み取りのみ） | 付与されたロールが`TRANSFORMER_PROD`のみ。`TYPE`が`SERVICE`、`DEFAULT_ROLE`が`TRANSFORMER_PROD`、`DEFAULT_WAREHOUSE`が`MAIN_WH`、`HAS_PASSWORD`が`false`、`RSA_PUBLIC_KEY_FP`が設定されている |  | PASS | 2026-10-18 |
+| 14 | 総合 | 要件定義書「リリースの結果」（成功が依頼者に分かる）／基本設計書「リリースの処理」・「CD専用のSnowflakeユーザー」・「Actionsのログの公開範囲」 | 依頼者がNo.12の承認待ちを承認した後、実行結果とログを確認する。PRODの`MART_TRANSACTIONS`の`LAST_ALTERED`を、`ANALYTICS_PROD.INFORMATION_SCHEMA.TABLES`で確認する（読み取りのみ） | 実行が成功で終わる。ログ上、`target`が`prod`で、すべてのモデル・テストが成功している。`LAST_ALTERED`が承認後の時刻になっている（ワークフローが渡す認証情報は`SVC_DBT_PROD`のもののみのため（No.4）、成功したことで`SVC_DBT_PROD`で接続できたことも確認できる）。ログに秘密鍵・アカウント識別子が表示されず（伏せ字）、取引の内容（内容列の値・金額）も表示されていない |  | PASS | 2026-10-18 |
+| 15 | 総合 | 要件定義書「リリースの契機」（資材の変更が無くても手動で始められる） | 依頼者が`main`を指定して手動実行し、承認した後、実行結果と`MART_TRANSACTIONS`の`LAST_ALTERED`を確認する | 手動実行が承認待ちで止まり、承認後に成功で終わる。`LAST_ALTERED`が承認後の時刻に更新されている |  | PASS | 2026-10-18 |
+| 16 | 総合 | 要件定義書「リリースの承認」（承認するまでPRODに反映されない）／基本設計書「概要」（却下すると何もせず終了する）・「リリースの承認」（同時に1つだけ動かす） | 依頼者が`main`を指定して手動実行を2回続けて行い、2件の実行の状態を確認する。その後、承認待ちの実行を却下し、残った実行も承認待ちになったら却下する。実行結果と`MART_TRANSACTIONS`の`LAST_ALTERED`を確認する | 1件目が承認待ち、2件目がその後ろで待っている（基本設計書の記述と異なる場合は、実際の挙動を記録し、実施記録のPRで基本設計書・`docs/development-standards.md`4.5.3を修正する）。却下したジョブはdbtを実行せずに終わる（却下として記録される）。`LAST_ALTERED`がNo.15から変わらない |  | PASS | 2026-10-18 |
+| 17 | 総合 | 基本設計書「リリースの契機」（`main`以外のブランチの手動実行は拒否する） | 実施記録のPR用のブランチ（マージ後の`main`から作るため、ワークフローの定義を含む）を指定して手動実行し、実行結果を確認する | Environment `prod`の制限（実行を許可するブランチ）によりジョブが拒否され、承認待ちにならず、dbtは実行されない。`LAST_ALTERED`がNo.16から変わらない |  | PASS | 2026-10-18 |
 | 18 | 総合 | 要件定義書「リリースの契機」（dbtに関係しない資材のマージでは始まらない） | 実施記録のPR（`.steering/`配下のみの変更）のマージ後に、ワークフローの実行状況を確認する | ワークフローが起動していない |  |  |  |
 
 ## 実施結果の補足
+
+### No.12〜17（マージ後）
+- No.12：PR #19のマージで実行（run 39084019309、`push`契機）が起動し、承認待ち（`waiting`）・ステップ数0で止まっていた
+- No.13：`SHOW GRANTS TO USER SVC_DBT_PROD`で付与ロールは`TRANSFORMER_PROD`のみ。`DESC USER`で`TYPE`が`SERVICE`、`DEFAULT_ROLE`が`TRANSFORMER_PROD`、`DEFAULT_WAREHOUSE`が`MAIN_WH`、`RSA_PUBLIC_KEY_FP`が設定済み。なお`HAS_PASSWORD`は`DESC USER`の出力に含まれないため、`SHOW USERS LIKE 'SVC_DBT_PROD'`の`has_password`列（`false`）で確認した
+- No.14：承認後に成功。ログは`target='prod'`・`Done. PASS=16 WARN=0 ERROR=0 SKIP=0`、`SNOWFLAKE_USER`は`SVC_DBT_PROD`。アカウント識別子・秘密鍵は`***`で伏せ字となり、ログ全体で秘密鍵の形式の文字列・大項目の値・`円`を含む行は0件。秘密鍵の削除ステップも実行された。`LAST_ALTERED`は01:25:35（UTC）で、実行中の時刻
+- No.15：依頼者が新しいデータをPRODに取り込んだ後、`main`で手動実行（run 39089668410、`workflow_dispatch`契機）し、承認後に成功（`PASS=16`）。`LAST_ALTERED`は02:20:27（UTC）に更新された。martの件数が増えたことは依頼者が確認した（受け入れテスト）
+- No.16：手動実行を2回続けて行い、1件目（run 39089938685）が承認待ち（`waiting`）、2件目（run 39089956563）がその後ろで待機（`pending`）となり、基本設計書の記述どおりだった。2件とも却下し、いずれもステップ数0で終了した。却下した実行も、GitHub上の結果の表示は`failure`となる（却下の記録は承認の履歴に残る）。`LAST_ALTERED`は02:20:27（UTC）のまま変わらなかった
+- No.17：`feature/20261012-dbt-cd-release-record`を指定した手動実行（run 39090119706）は、承認待ちにならずステップ数0で失敗した。注釈は`Branch "feature/20261012-dbt-cd-release-record" is not allowed to deploy to prod due to environment protection rules.`。`LAST_ALTERED`は02:20:27（UTC）のまま変わらなかった
+- No.18（予定）：実施記録のPRは、`.steering/`配下に加えて`docs/`配下（`backlog.md`・`development-standards.md`）も変更しているが、いずれもワークフローの`paths`の対象外（dbtに関係しない資材）のため、確認の有効性に影響は無い
 
 ### No.1
 - actionlint v1.7.12（Windows版の実行ファイルを一時的に取得して使用）で、出力なし・終了コード0
